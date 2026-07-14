@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
-app = FastAPI()
+from .api.v1 import greeting
 
-@app.get("/")
-async def root():
-    return { "message": "Hello FastAPI!" }
+app = FastAPI()
+app.include_router(greeting.router, prefix="/api/v1")
