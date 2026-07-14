@@ -1,2 +1,13 @@
+[project]
+name = "ssafy-localhub-backend"
+version = "0.0.1"
+
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]==0.113.0",
+    "pydantic==2.8.0",
+    "sqlalchemy==2.0.51",
+]
+
 [tool.fastapi]
 entrypoint = "app.main:app"
