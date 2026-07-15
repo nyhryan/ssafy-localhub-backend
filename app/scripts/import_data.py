@@ -7,7 +7,7 @@ from datetime import datetime
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.database import SessionLocal
-from app.models import ContentType, POIItem
+from app.models import ContentType, POIItem, Post
 
 def parse_time_format(raw_time_str: str) -> str:
     """Converts 20231015123000 to YYYY-MM-DD HH:MM:SS format safely"""
@@ -78,12 +78,85 @@ def import_json_data(file_path: str):
             print(f"Successfully imported {len(db_items)} items into the database!")
         else:
             print("No new items to import.")
-
     except Exception as e:
         db.rollback()
         print(f"Error during import: {e}")
     finally:
         db.close()
+
+def import_posts(file_path: str):
+    """Import posts JSON into the `posts` table.
+    Supports top-level lists of post objects or a wrapper with a `posts` key.
+    Each post item should include `category`, `title`, `content`, and `password`.
+    """
+    db = SessionLocal()
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Determine if this JSON contains posts
+        posts_list = []
+        if isinstance(data, list):
+            posts_list = data
+        elif isinstance(data, dict):
+            if isinstance(data.get("posts"), list):
+                posts_list = data.get("posts")
+            else:
+                # Not a posts payload
+                return
+
+        if not posts_list:
+            print("No posts found in JSON or unsupported format.")
+            return
+
+        # build a map of category name -> contentTypeId
+        content_types = {ct.name: ct.contentTypeId for ct in db.query(ContentType).all()}
+
+        existing_titles = {item.title for item in db.query(Post.title).all()}
+
+        db_posts = []
+        for item in posts_list:
+            title = item.get("title")
+            content = item.get("content")
+            password = item.get("password")
+            category_name = item.get("category")
+
+            if not (title and content and password and category_name):
+                # skip invalid entries
+                continue
+
+            category_id = content_types.get(category_name)
+            if not category_id:
+                print(f"Warning: category '{category_name}' not found. Skipping post '{title}'")
+                continue
+
+            # avoid duplicate by title
+            if title in existing_titles:
+                continue
+
+            post_obj = Post(
+                title=title,
+                content=content,
+                password=password,
+                image_path=None,
+                category_id=category_id,
+            )
+            db_posts.append(post_obj)
+
+        if db_posts:
+            db.bulk_save_objects(db_posts)
+            db.commit()
+            print(f"Successfully imported {len(db_posts)} posts from {file_path}!")
+        else:
+            print("No new posts to import.")
+
+    except Exception as e:
+        db.rollback()
+        print(f"Error during posts import: {e}")
+    finally:
+        db.close()
+
+
 
 def seed_content_types():
     db = SessionLocal()
@@ -109,13 +182,28 @@ def seed_content_types():
         db.close()
 
 if __name__ == "__main__":
-    # import all json files in `data` directory
+    # 1. 카테고리 기초 데이터를 먼저 DB에 등록 (가장 중요)
+    seed_content_types()
+    
+    # 2. 데이터 디렉토리 경로 설정
     data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+    
+    if not os.path.exists(data_dir):
+        print(f"Error: Data directory '{data_dir}' does not exist.")
+        sys.exit(1)
+
+    # 3. 폴더 내의 모든 JSON 파일을 돌며 적절하게 데이터 적재
     for filename in os.listdir(data_dir):
         if filename.endswith(".json"):
             file_path = os.path.join(data_dir, filename)
-            print(f"Importing data from {file_path}...")
-            import_json_data(file_path)
-    print("---- JSON Data import completed! ----")
-    
-    seed_content_types()
+            print(f"\nProcessing file: {file_path}...")
+            
+            # 파일명에 'posts'가 포함되어 있거나 posts_to_import 파일인 경우
+            if "posts" in filename:
+                print(f"-> Detected as POSTS data. Importing to posts table...")
+                import_posts(file_path)
+            else:
+                print(f"-> Detected as POI data. Importing to poi_items table...")
+                import_json_data(file_path)
+
+    print("\n---- JSON Data import completed! ----")
