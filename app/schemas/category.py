@@ -9,6 +9,7 @@ class PlaceSchema(BaseModel):
     image: Optional[str] = None
     mapx: Optional[float] = None
     mapy: Optional[float] = None
+    category_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -19,6 +20,5 @@ class PageInfoSchema(BaseModel):
     total_items: int
 
 class CategoryResponseSchema(BaseModel):
-    filter: str
     places: List[PlaceSchema]
     pages: PageInfoSchema
