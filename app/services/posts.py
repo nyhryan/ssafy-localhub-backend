@@ -42,6 +42,7 @@ def get_posts(
     sort_by: str = "created_at",
     sort_order: str = "desc",
     keyword: str | None = None,
+    category: str | None = None,
 ) -> tuple[int, int, list[Post]]:
     query = db.query(Post).outerjoin(ContentType, Post.category_id == ContentType.contentTypeId)
 
@@ -53,6 +54,9 @@ def get_posts(
                 Post.content.ilike(like_pattern),
             )
         )
+
+    if category:
+        query = query.filter(ContentType.name == category)
 
     total = query.count()
     total_pages = ceil(total / page_size) if total > 0 else 0

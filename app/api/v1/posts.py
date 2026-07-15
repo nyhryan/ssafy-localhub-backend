@@ -53,6 +53,7 @@ async def get_posts(
     sort_by: str = Query(default="created_at"),
     sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
     keyword: str | None = Query(default=None, description="제목과 본문에서 검색할 단어"),
+    category: str | None = Query(default=None, description="카테고리(관광지, 문화시설,축제공연행사, 여행코스, 레포츠, 숙박, 쇼핑, 음식점)"),
 ):
     total, total_pages, posts = post_service.get_posts(
         db=db,
@@ -61,6 +62,7 @@ async def get_posts(
         sort_by=sort_by,
         sort_order=sort_order,
         keyword=keyword,
+        category=category,
     )
 
     return PostListResponse(
