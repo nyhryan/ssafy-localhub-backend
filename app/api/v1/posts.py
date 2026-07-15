@@ -29,7 +29,6 @@ def _to_post_read(post):
         likes=post.likes,
         created_at=post.created_at,
         updated_at=post.updated_at,
-        category_id=post.category_id,
         category_name=category_name,
     )
 

@@ -8,14 +8,14 @@ class PostCreate(BaseModel):
     content: str = Field(min_length=1)
     password: str = Field(min_length=1)
     image_path: str | None = None
-    category_id: str = Field(min_length=1)
+    category_name: str = Field(min_length=1)
 
 
 class PostUpdate(BaseModel):
     title: str | None = None
     content: str | None = None
     image_path: str | None = None
-    category_id: str | None = None
+    category_name: str = Field(min_length=1)
 
 
 class PostVerifyRequest(BaseModel):
@@ -33,7 +33,6 @@ class PostRead(BaseModel):
     likes: int
     created_at: datetime
     updated_at: datetime
-    category_id: str
     category_name: str | None = None
 
 
