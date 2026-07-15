@@ -42,7 +42,7 @@ def get_posts(
     sort_by: str = "created_at",
     sort_order: str = "desc",
     keyword: str | None = None,
-):
+) -> tuple[int, int, list[Post]]:
     query = db.query(Post).outerjoin(ContentType, Post.category_id == ContentType.contentTypeId)
 
     if keyword:
