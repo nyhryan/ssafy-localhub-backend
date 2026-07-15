@@ -10,7 +10,6 @@ from .api.v1 import category, posts
 
 Base.metadata.create_all(bind=engine)
 
-
 def populate_database() -> None:
     seed_content_types()
 
@@ -30,7 +29,6 @@ def populate_database() -> None:
             import_json_data(str(file_path))
 
     print("\n---- JSON Data import completed! ----")
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
