@@ -19,5 +19,6 @@ class PageInfoSchema(BaseModel):
     total_items: int
 
 class CategoryResponseSchema(BaseModel):
+    filter: str
     places: List[PlaceSchema]
     pages: PageInfoSchema
