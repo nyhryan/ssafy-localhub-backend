@@ -28,6 +28,12 @@ def _get_post_or_404(db: Session, post_id: int) -> Post:
         raise HTTPException(status_code=404, detail="Post not found")
     return post
 
+def _get_category_or_404(db: Session, category_name: str) -> ContentType:
+    category = db.query(ContentType).filter(ContentType.name == category_name).first()
+    if category is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
+
 
 def get_posts(
     db: Session,
@@ -75,11 +81,7 @@ def get_post(db: Session, post_id: int):
 
 
 def create_post(db: Session, payload: PostCreate):
-    category = (
-        db.query(ContentType)
-        .filter(ContentType.contentTypeId == payload.category_id)
-        .first()
-    )
+    category = _get_category_or_404(db, payload.category_name)
     if category is None:
         raise HTTPException(status_code=404, detail="Category not found")
 
@@ -88,7 +90,7 @@ def create_post(db: Session, payload: PostCreate):
         content=payload.content,
         password=payload.password,
         image_path=payload.image_path,
-        category_id=payload.category_id,
+        category_id=category.contentTypeId,
     )
     db.add(post)
     db.commit()
@@ -110,15 +112,9 @@ def update_post(db: Session, post_id: int, payload: PostUpdate):
         post.content = payload.content
     if payload.image_path is not None:
         post.image_path = payload.image_path
-    if payload.category_id is not None:
-        category = (
-            db.query(ContentType)
-            .filter(ContentType.contentTypeId == payload.category_id)
-            .first()
-        )
-        if category is None:
-            raise HTTPException(status_code=404, detail="Category not found")
-        post.category_id = payload.category_id
+    if payload.category_name is not None:
+        category = _get_category_or_404(db, payload.category_name)
+        post.category_id = category.contentTypeId
 
     db.commit()
     db.refresh(post)

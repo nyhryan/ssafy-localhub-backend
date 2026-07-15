@@ -17,7 +17,7 @@ def test_create_post_success(client, seed_category):
         "content": "World",
         "password": "1234",
         "image_path": "/images/hello.png",
-        "category_id": "12",
+        "category_name": "관광지",
     }
 
     response = client.post("/api/v1/posts", json=payload)
@@ -29,7 +29,6 @@ def test_create_post_success(client, seed_category):
     assert data["image_path"] == "/images/hello.png"
     assert data["views"] == 0
     assert data["likes"] == 0
-    assert data["category_id"] == "12"
     assert data["category_name"] == "관광지"
     assert "id" in data
     assert "created_at" in data
@@ -42,7 +41,7 @@ def test_create_post_category_not_found(client):
         "content": "World",
         "password": "1234",
         "image_path": None,
-        "category_id": "999",
+        "category_name": "존재하지 않는 카테고리",
     }
 
     response = client.post("/api/v1/posts", json=payload)
@@ -176,7 +175,7 @@ def test_update_post_success(client, create_post, seed_second_category):
         "title": "Updated title",
         "content": "Updated content",
         "image_path": "/images/updated.png",
-        "category_id": "14",
+        "category_name": "문화시설",
     }
 
     response = client.put(f"/api/v1/posts/{create_post.id}", json=payload)
@@ -186,7 +185,6 @@ def test_update_post_success(client, create_post, seed_second_category):
     assert data["title"] == "Updated title"
     assert data["content"] == "Updated content"
     assert data["image_path"] == "/images/updated.png"
-    assert data["category_id"] == "14"
     assert data["category_name"] == "문화시설"
 
 
@@ -194,7 +192,7 @@ def test_update_post_category_not_found(client, create_post):
     response = client.put(
         f"/api/v1/posts/{create_post.id}",
         json={
-            "category_id": "999",
+            "category_name": "존재하지 않는 카테고리",
         },
     )
 
