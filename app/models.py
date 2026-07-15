@@ -1,66 +1,69 @@
 from datetime import datetime, UTC
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Table
-from sqlalchemy.orm import relationship
-from .database import Base
+from typing import Optional, List
+from sqlalchemy import Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship, DeclarativeBase, mapped_column, Mapped
 
 # ==== SQLAlchemy 스키마 정의 ====
+
+class Base(DeclarativeBase):
+    pass
 
 class ContentType(Base):
     __tablename__ = "content_type"
 
-    contentTypeId = Column(String, primary_key=True, unique=True)
-    name = Column(String, nullable=False)
+    contentTypeId: Mapped[str] = mapped_column(String, primary_key=True, unique=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
 
     # Relationship to POI Items
-    poi_items = relationship("POIItem", back_populates="content_type")
-    posts = relationship("Post", back_populates="categories")
+    poi_items: Mapped[List["POIItem"]] = relationship("POIItem", back_populates="content_type")
+    posts: Mapped[List["Post"]] = relationship("Post", back_populates="categories")
 
 
 class POIItem(Base):
     __tablename__ = "poi_items"
 
-    contentid = Column(String, primary_key=True)
-    contenttypeid = Column(String, ForeignKey("content_type.contentTypeId"), nullable=False)
-    title = Column(String, nullable=False)
-    addr1 = Column(String, nullable=True)
-    addr2 = Column(String, nullable=True)
-    zipcode = Column(String, nullable=True)
-    tel = Column(String, nullable=True)
-    mapx = Column(Float, nullable=True)
-    mapy = Column(Float, nullable=True)
-    mlevel = Column(String, nullable=True)
-    areacode = Column(String, nullable=True)
-    sigungucode = Column(String, nullable=True)
-    lDongRegnCd = Column(String, nullable=True)
-    lDongSignguCd = Column(String, nullable=True)
-    cat1 = Column(String, nullable=True)
-    cat2 = Column(String, nullable=True)
-    cat3 = Column(String, nullable=True)
-    lclsSystm1 = Column(String, nullable=True)
-    lclsSystm2 = Column(String, nullable=True)
-    lclsSystm3 = Column(String, nullable=True)
-    firstimage = Column(String, nullable=True)
-    firstimage2 = Column(String, nullable=True)
-    cpyrhtDivCd = Column(String, nullable=True)
-    createdtime = Column(String, nullable=True)  # Stored as text (YYYY-MM-DD HH:MM:SS)
-    modifiedtime = Column(String, nullable=True) # Stored as text (YYYY-MM-DD HH:MM:SS)
+    contentid: Mapped[str] = mapped_column(String, primary_key=True)
+    contenttypeid: Mapped[str] = mapped_column(String, ForeignKey("content_type.contentTypeId"), nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    addr1: Mapped[Optional[str]]
+    addr2: Mapped[Optional[str]]
+    zipcode: Mapped[Optional[str]]
+    tel: Mapped[Optional[str]]
+    mapx: Mapped[Optional[float]]
+    mapy: Mapped[Optional[float]]
+    mlevel: Mapped[Optional[str]]
+    areacode: Mapped[Optional[str]]
+    sigungucode: Mapped[Optional[str]]
+    lDongRegnCd: Mapped[Optional[str]]
+    lDongSignguCd: Mapped[Optional[str]]
+    cat1: Mapped[Optional[str]]
+    cat2: Mapped[Optional[str]]
+    cat3: Mapped[Optional[str]]
+    lclsSystm1: Mapped[Optional[str]]
+    lclsSystm2: Mapped[Optional[str]]
+    lclsSystm3: Mapped[Optional[str]]
+    firstimage: Mapped[Optional[str]]
+    firstimage2: Mapped[Optional[str]]
+    cpyrhtDivCd: Mapped[Optional[str]]
+    createdtime: Mapped[Optional[str]]  # Stored as text (YYYY-MM-DD HH:MM:SS)
+    modifiedtime: Mapped[Optional[str]] # Stored as text (YYYY-MM-DD HH:MM:SS)
 
-    content_type = relationship("ContentType", back_populates="poi_items")
+    content_type: Mapped["ContentType"] = relationship("ContentType", back_populates="poi_items")
 
 
 class Post(Base):
     __tablename__ = "posts"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    title = Column(String, nullable=False)
-    content = Column(String, nullable=False)
-    password = Column(String, nullable=False)  # Stored as plaintext[cite: 1]
-    image_path = Column(String, nullable=True)
-    views = Column(Integer, default=0)
-    likes = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.now(UTC))
-    updated_at = Column(DateTime, default=datetime.now(UTC), onupdate=datetime.now(UTC))
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    password: Mapped[str] = mapped_column(String, nullable=False)  # Stored as plaintext[cite: 1]
+    image_path: Mapped[Optional[str]]
+    views: Mapped[int] = mapped_column(Integer, default=0)
+    likes: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(UTC), onupdate=datetime.now(UTC))
 
     # Many-to-many relationship with categories
-    category_id = Column(String, ForeignKey("content_type.contentTypeId"), nullable=False)
-    categories = relationship("ContentType", back_populates="posts")
+    category_id: Mapped[str] = mapped_column(String, ForeignKey("content_type.contentTypeId"), nullable=False)
+    categories: Mapped[List["ContentType"]] = relationship("ContentType", back_populates="posts")

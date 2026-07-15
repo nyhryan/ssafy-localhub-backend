@@ -41,7 +41,7 @@ class PostListItem(PostRead):
 
 
 class PostListResponse(BaseModel):
-    items: list[PostListItem]
+    items: list[PostRead]
     page: int
     page_size: int
     total: int
