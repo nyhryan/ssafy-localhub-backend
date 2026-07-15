@@ -1,11 +1,11 @@
 from math import ceil
 
 from fastapi import HTTPException
-from sqlalchemy import asc, desc, or_
+from sqlalchemy import asc, desc, or_, update
 from sqlalchemy.orm import Session
 
 from app.models import ContentType, Post
-from app.schemas.posts import PostCreate, PostUpdate
+from app.schemas.posts import PostCreate, PostUpdate, PostLikeCountRequest
 
 
 ALLOWED_SORT_FIELDS = {
@@ -77,6 +77,15 @@ def get_recent_posts(db: Session, limit: int = 5):
 
 
 def get_post(db: Session, post_id: int):
+    updated_rows = (
+        db.query(Post)
+        .filter(Post.id == post_id)
+        .update({Post.views: Post.views + 1}, synchronize_session=False)
+    )
+    if updated_rows == 0:
+        raise HTTPException(status_code=404, detail="Post not found")
+    db.commit()
+    # safely increment the views count
     return _get_post_or_404(db, post_id)
 
 
@@ -126,3 +135,22 @@ def delete_post(db: Session, post_id: int):
 
     db.delete(post)
     db.commit()
+
+def update_post_like_count(db: Session, post_id: int, payload: PostLikeCountRequest) -> int:
+    delta = -1 if payload.has_liked else 1
+
+    stmt = (
+        update(Post)
+        .where(Post.id == post_id)
+        .values(likes=Post.likes + delta)
+        .returning(Post.likes)
+    )
+
+    result = db.execute(stmt)
+    likes = result.scalar_one_or_none()
+
+    if likes is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    db.commit()
+    return likes

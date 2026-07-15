@@ -46,3 +46,9 @@ class PostListResponse(BaseModel):
     page_size: int
     total: int
     total_pages: int
+
+class PostLikeCountRequest(BaseModel):
+    has_liked:bool
+
+class PostLikeCountResponse(BaseModel):
+    likes: int

@@ -10,6 +10,8 @@ from app.schemas.posts import (
     PostRead,
     PostUpdate,
     PostVerifyRequest,
+    PostLikeCountRequest,
+    PostLikeCountResponse
 )
 from app.services import posts as post_service
 
@@ -50,7 +52,7 @@ async def get_posts(
     page_size: int = Query(default=10, ge=1, le=100),
     sort_by: str = Query(default="created_at"),
     sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
-    keyword: str | None = Query(default=None),
+    keyword: str | None = Query(default=None, description="제목과 본문에서 검색할 단어"),
 ):
     total, total_pages, posts = post_service.get_posts(
         db=db,
@@ -117,3 +119,17 @@ async def delete_post(
 ):
     post_service.delete_post(db=db, post_id=post_id)
     return Response(status_code=204)
+
+@router.post(
+    "/posts/{post_id}/like", 
+    response_model=PostLikeCountResponse,
+    summary="좋아요 수 업데이트",
+    description="좋아요 수를 업데이트합니다. 사용자가 좋아요를 눌렀는지 여부를 localStorage에 저장한 것을 사용합니다. 현재 눌러진 상태라면 localStorage에 true, 백엔드 API에 요청을 보내면 좋아요를 하나 감소 시킵니다."
+)
+async def like_post(
+    post_id: int,
+    payload: PostLikeCountRequest,
+    db: Session = Depends(get_db),
+):
+    like_count = post_service.update_post_like_count(db=db, post_id=post_id, payload=payload)
+    return PostLikeCountResponse(likes=like_count)
