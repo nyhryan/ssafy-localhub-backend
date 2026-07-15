@@ -4,10 +4,8 @@ from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Post
 from app.schemas.posts import (
     PostCreate,
-    PostListItem,
     PostListResponse,
     PostResponse,
     PostUpdate,
@@ -25,7 +23,7 @@ router = APIRouter(tags=["posts"])
         response_model=List[PostResponse],
         summary="최근 게시물 조회(기본 5개)",
 )
-async def get_recent_posts(
+def get_recent_posts(
     db: Session = Depends(get_db),
     limit: int = Query(default=5, ge=1, le=20),
 ):
@@ -34,7 +32,7 @@ async def get_recent_posts(
 
 
 @router.get("/posts", response_model=PostListResponse)
-async def get_posts(
+def get_posts(
     db: Session = Depends(get_db),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
@@ -63,19 +61,19 @@ async def get_posts(
 
 
 @router.get("/posts/{post_id}", response_model=PostResponse)
-async def get_post(post_id: int, db: Session = Depends(get_db)):
+def get_post(post_id: int, db: Session = Depends(get_db)):
     post = post_service.get_post(db=db, post_id=post_id)
     return PostResponse.from_post(post)
 
 
 @router.post("/posts", response_model=PostResponse, status_code=201)
-async def create_post(payload: PostCreate, db: Session = Depends(get_db)):
+def create_post(payload: PostCreate, db: Session = Depends(get_db)):
     post = post_service.create_post(db=db, payload=payload)
     return PostResponse.from_post(post)
 
 
 @router.post("/posts/{post_id}/verify")
-async def verify_post_password(
+def verify_post_password(
     post_id: int,
     payload: PostPasswordVerify,
     db: Session = Depends(get_db),
@@ -93,7 +91,7 @@ async def verify_post_password(
 
 
 @router.put("/posts/{post_id}", response_model=PostResponse)
-async def update_post(
+def update_post(
     post_id: int,
     payload: PostUpdate,
     db: Session = Depends(get_db),
@@ -103,7 +101,7 @@ async def update_post(
 
 
 @router.delete("/posts/{post_id}", status_code=204)
-async def delete_post(
+def delete_post(
     post_id: int,
     db: Session = Depends(get_db),
 ):
@@ -116,7 +114,7 @@ async def delete_post(
     summary="좋아요 수 업데이트",
     description="좋아요 수를 업데이트합니다. 사용자가 좋아요를 눌렀는지 여부를 localStorage에 저장한 것을 사용합니다. 현재 눌러진 상태라면 localStorage에 true, 백엔드 API에 요청을 보내면 좋아요를 하나 감소 시킵니다."
 )
-async def like_post(
+def like_post(
     post_id: int,
     payload: PostLikeToggle,
     db: Session = Depends(get_db),
