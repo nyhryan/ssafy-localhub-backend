@@ -92,7 +92,11 @@ def verify_post_password(
         post_id=post_id,
         password=payload.password,
     )
-    return {"verified": verified}
+
+    if not verified:
+        return Response(status_code=401)
+    else:
+        return Response(status_code=200)
 
 
 @router.put("/posts/{post_id}", response_model=PostRead)
