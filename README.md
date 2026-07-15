@@ -6,6 +6,12 @@
 
 OpenAI API 키를 발급받아 `.env` 파일에 작성합니다. 챗봇은 `gpt-5-mini` 모델만 지원합니다.
 
+```
+OPENAI_API_KEY="asdfadfasdf"
+```
+
+위와 같이 값이 쌍따옴표로 묶이게 작성합니다.
+
 아래는 프로젝트 구동 방법입니다.
 
 ```console
