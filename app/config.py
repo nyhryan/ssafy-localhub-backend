@@ -1,7 +1,11 @@
-class Config:
-    def __init__(self):
-        self.db_file_name = "database.db"
-        self.db_url = f"sqlite:///{self.db_file_name}"
-        self.db_connect_args = { "check_same_thread": False }
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-config = Config()
+class Settings(BaseSettings):
+    db_file_name: str = "database.db"
+    db_url: str = f"sqlite:///{db_file_name}"
+    db_connect_args: dict = {"check_same_thread": False}
+    openai_api_key: str
+
+    model_config = SettingsConfigDict(env_file=".env")
+
+settings = Settings()
