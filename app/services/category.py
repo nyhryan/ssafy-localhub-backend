@@ -45,6 +45,7 @@ def get_category_places(
     ]
 
     return {
+        "filter": filter if filter else "전체",
         "places": places,
         "pages": {
             "current_page": page,
