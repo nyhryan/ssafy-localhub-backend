@@ -16,7 +16,6 @@ class PostUpdate(BaseModel):
     content: str | None = None
     image_path: str | None = None
     category_id: str | None = None
-    password: str = Field(min_length=1)
 
 
 class PostVerifyRequest(BaseModel):

@@ -104,9 +104,6 @@ def verify_post_password(db: Session, post_id: int, password: str) -> bool:
 def update_post(db: Session, post_id: int, payload: PostUpdate):
     post = _get_post_or_404(db, post_id)
 
-    if post.password != payload.password:
-        raise HTTPException(status_code=403, detail="Password mismatch")
-
     if payload.title is not None:
         post.title = payload.title
     if payload.content is not None:

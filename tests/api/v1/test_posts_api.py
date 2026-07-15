@@ -177,7 +177,6 @@ def test_update_post_success(client, create_post, seed_second_category):
         "content": "Updated content",
         "image_path": "/images/updated.png",
         "category_id": "14",
-        "password": "1234",
     }
 
     response = client.put(f"/api/v1/posts/{create_post.id}", json=payload)
@@ -191,26 +190,11 @@ def test_update_post_success(client, create_post, seed_second_category):
     assert data["category_name"] == "문화시설"
 
 
-def test_update_post_password_mismatch(client, create_post):
-    response = client.put(
-        f"/api/v1/posts/{create_post.id}",
-        json={
-            "title": "Updated title",
-            "content": "Updated content",
-            "password": "wrong",
-        },
-    )
-
-    assert response.status_code == 403
-    assert response.json() == {"detail": "Password mismatch"}
-
-
 def test_update_post_category_not_found(client, create_post):
     response = client.put(
         f"/api/v1/posts/{create_post.id}",
         json={
             "category_id": "999",
-            "password": "1234",
         },
     )
 
