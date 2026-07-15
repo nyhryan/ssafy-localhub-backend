@@ -10,6 +10,7 @@ from .api.v1 import category, posts
 
 Base.metadata.create_all(bind=engine)
 
+
 def populate_database() -> None:
     seed_content_types()
 
@@ -30,6 +31,7 @@ def populate_database() -> None:
 
     print("\n---- JSON Data import completed! ----")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     populate_database()
@@ -39,6 +41,7 @@ app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
+    "https://frolicking-valkyrie-bfd943.netlify.app"
 ]
 
 app.add_middleware(
