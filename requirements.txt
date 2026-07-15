@@ -1,3 +1,7 @@
 fastapi[standard]==0.113.0
 pydantic==2.8.0
 sqlalchemy==2.0.51
+
+# dev dependencies
+pytest==9.1.1
+pytest-cov==7.1.0
