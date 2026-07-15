@@ -1,11 +1,5 @@
-import os
-import sys
 import json
 from datetime import datetime
-
-# Adjust Python path to allow running from root directory
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from app.database import SessionLocal
 from app.models import ContentType, POIItem, Post
 
@@ -23,6 +17,9 @@ def parse_time_format(raw_time_str: str) -> str:
 def import_json_data(file_path: str):
     db = SessionLocal()
     try:
+        if db.query(POIItem).count() > 0:
+            return
+
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         
@@ -91,6 +88,9 @@ def import_posts(file_path: str):
     """
     db = SessionLocal()
     try:
+        if db.query(Post).count() > 0:
+            return
+
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -156,8 +156,6 @@ def import_posts(file_path: str):
     finally:
         db.close()
 
-
-
 def seed_content_types():
     db = SessionLocal()
     try:
@@ -180,30 +178,3 @@ def seed_content_types():
         print(f"Error during seeding content types: {e}")
     finally:
         db.close()
-
-if __name__ == "__main__":
-    # 1. 카테고리 기초 데이터를 먼저 DB에 등록 (가장 중요)
-    seed_content_types()
-    
-    # 2. 데이터 디렉토리 경로 설정
-    data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data")
-    
-    if not os.path.exists(data_dir):
-        print(f"Error: Data directory '{data_dir}' does not exist.")
-        sys.exit(1)
-
-    # 3. 폴더 내의 모든 JSON 파일을 돌며 적절하게 데이터 적재
-    for filename in os.listdir(data_dir):
-        if filename.endswith(".json"):
-            file_path = os.path.join(data_dir, filename)
-            print(f"\nProcessing file: {file_path}...")
-            
-            # 파일명에 'posts'가 포함되어 있거나 posts_to_import 파일인 경우
-            if "posts" in filename:
-                print(f"-> Detected as POSTS data. Importing to posts table...")
-                import_posts(file_path)
-            else:
-                print(f"-> Detected as POI data. Importing to poi_items table...")
-                import_json_data(file_path)
-
-    print("\n---- JSON Data import completed! ----")
