@@ -11,7 +11,7 @@ $ python -m pip install --upgrade pip
 $ echo "*" > .venv/.gitignore
 $ pip install -r requirements.txt
 $ fastapi dev
-$ python -m app/scripts/import_data.py
+$ python -m app.scripts.import_data
 ```
 
 > 사용 중인 환경에 따라 활성화 명령이 다릅니다.
@@ -44,4 +44,4 @@ C:\Users\user\code\awesome-project\.venv\Scripts\python
 7-1\. FastAPI 애플리케이션이 성공적으로 구동되었다면 <kbd>Ctrl+c</kbd>를 눌러 종료합니다.
 이후 프로젝트 디렉터리에 `database.db` 파일이 생성되었는지 확인합니다.
 
-7-2\. `python -m app/scripts/import_data` 명령어를 실행하여 데이터베이스에 JSON 공공 데이터를 삽입합니다.
+7-2\. `python -m app.scripts.import_data` 명령어를 실행하여 데이터베이스에 JSON 공공 데이터를 삽입합니다.
