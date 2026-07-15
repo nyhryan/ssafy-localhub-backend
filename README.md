@@ -4,6 +4,10 @@
 
 ### Step 1. 개발 환경 구성
 
+OpenAI API 키를 발급받아 `.env` 파일에 작성합니다. 챗봇은 `gpt-5-mini` 모델만 지원합니다.
+
+아래는 프로젝트 구동 방법입니다.
+
 ```console
 $ python -m venv .venv
 $ .venv/Scripts/Activate.ps1
