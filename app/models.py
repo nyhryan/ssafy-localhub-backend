@@ -64,7 +64,3 @@ class Post(Base):
     # Many-to-many relationship with categories
     category_id = Column(String, ForeignKey("content_type.contentTypeId"), nullable=False)
     categories = relationship("ContentType", back_populates="posts")
-
-# ==== 애플리케이션 DTO 정의 ====
-
-from pydantic import BaseModel
