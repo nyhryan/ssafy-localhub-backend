@@ -40,12 +40,12 @@ def get_category_places(
             "image": place.firstimage2,
             "mapx": place.mapx,
             "mapy": place.mapy,
+            "category_name": place.content_type.name if place.content_type else None,
         }
         for place in db_places
     ]
 
     return {
-        "filter": filter if filter else "전체",
         "places": places,
         "pages": {
             "current_page": page,
