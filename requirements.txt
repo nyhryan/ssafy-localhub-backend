@@ -1,6 +1,9 @@
 fastapi[standard]==0.113.0
 pydantic==2.8.0
 sqlalchemy==2.0.51
+pydantic-settings==2.14.2
+python-dotenv==1.2.2
+openai==2.45.0
 
 # dev dependencies
 pytest==9.1.1
