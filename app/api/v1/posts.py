@@ -16,7 +16,7 @@ from app.services import posts as post_service
 router = APIRouter(tags=["posts"])
 
 
-def _to_post_read(post):
+def _to_post_read(post: Post):
     category_name = None
     if getattr(post, "categories", None) is not None:
         category_name = getattr(post.categories, "name", None)
@@ -35,7 +35,7 @@ def _to_post_read(post):
 
 
 @router.get("/posts/recent", response_model=list[PostListItem])
-def get_recent_posts(
+async def get_recent_posts(
     db: Session = Depends(get_db),
     limit: int = Query(default=5, ge=1, le=20),
 ):
@@ -44,7 +44,7 @@ def get_recent_posts(
 
 
 @router.get("/posts", response_model=PostListResponse)
-def get_posts(
+async def get_posts(
     db: Session = Depends(get_db),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
@@ -71,19 +71,19 @@ def get_posts(
 
 
 @router.get("/posts/{post_id}", response_model=PostRead)
-def get_post(post_id: int, db: Session = Depends(get_db)):
+async def get_post(post_id: int, db: Session = Depends(get_db)):
     post = post_service.get_post(db=db, post_id=post_id)
     return _to_post_read(post)
 
 
 @router.post("/posts", response_model=PostRead, status_code=201)
-def create_post(payload: PostCreate, db: Session = Depends(get_db)):
+async def create_post(payload: PostCreate, db: Session = Depends(get_db)):
     post = post_service.create_post(db=db, payload=payload)
     return _to_post_read(post)
 
 
 @router.post("/posts/{post_id}/verify")
-def verify_post_password(
+async def verify_post_password(
     post_id: int,
     payload: PostVerifyRequest,
     db: Session = Depends(get_db),
@@ -101,7 +101,7 @@ def verify_post_password(
 
 
 @router.put("/posts/{post_id}", response_model=PostRead)
-def update_post(
+async def update_post(
     post_id: int,
     payload: PostUpdate,
     db: Session = Depends(get_db),
@@ -111,7 +111,7 @@ def update_post(
 
 
 @router.delete("/posts/{post_id}", status_code=204)
-def delete_post(
+async def delete_post(
     post_id: int,
     db: Session = Depends(get_db),
 ):

@@ -6,8 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.scripts.import_data import import_json_data, import_posts, seed_content_types
 from .database import Base, engine
-from . import models
-from .api.v1 import greeting, category, posts
+from .api.v1 import category, posts
 
 Base.metadata.create_all(bind=engine)
 
