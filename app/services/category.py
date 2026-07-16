@@ -1,6 +1,7 @@
 from math import ceil
 
 from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import ContentType, POIItem
@@ -12,10 +13,13 @@ def get_category_places(
     page: int = 1,
     items_per_page: int = 10,
 ):
-    query = db.query(POIItem)
+    stmt = select(POIItem)
+    query = db.scalars(stmt).all()
 
     if filter:
-        category = db.query(ContentType).filter(ContentType.name == filter).first()
+        stmt = select(ContentType).where(ContentType.name == filter)
+        category = db.scalars(stmt).first()
+
         if category is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -23,7 +27,7 @@ def get_category_places(
             )
         query = query.filter(POIItem.contenttypeid == category.contentTypeId)
 
-    total_items = query.count()
+    total_items = len(query)
     total_pages = ceil(total_items / items_per_page) if total_items > 0 else 0
 
     db_places = (

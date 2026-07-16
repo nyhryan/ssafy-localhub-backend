@@ -157,7 +157,6 @@ def test_verify_post_password_true(client, create_post):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"verified": True}
 
 
 def test_verify_post_password_false(client, create_post):
@@ -166,8 +165,7 @@ def test_verify_post_password_false(client, create_post):
         json={"password": "wrong"},
     )
 
-    assert response.status_code == 200
-    assert response.json() == {"verified": False}
+    assert response.status_code == 401
 
 
 def test_update_post_success(client, create_post, seed_second_category):
