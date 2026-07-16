@@ -1,6 +1,15 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException
+from typing import List
+from fastapi import APIRouter, Depends
 import openai
+from openai.types.chat import (
+    ChatCompletionMessageParam,
+    ChatCompletionToolMessageParam, 
+    ChatCompletionToolUnionParam, 
+    ChatCompletionAssistantMessageParam
+)
+
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -8,10 +17,10 @@ from app.schemas.chatbot import ChatRequest
 from app.config import settings
 from app.services.chatbot import search_local_pois, get_community_reviews
 
-router = APIRouter()
+router = APIRouter(tags=["chatbot"])
 
 # 2. Define JSON schemas of tools for OpenAI
-CHATBOT_TOOLS = [
+CHATBOT_TOOLS: List[ChatCompletionToolUnionParam] = [
     {
         "type": "function",
         "function": {
@@ -51,11 +60,14 @@ CHATBOT_TOOLS = [
     }
 ]
 
-@router.post("/chat")
-async def handle_chat(payload: ChatRequest, db: Session = Depends(get_db)):
+class ChatBotResponse(BaseModel):
+    response: str | None = Field(..., description="챗봇 답변")
+
+@router.post("/chat", response_model=ChatBotResponse)
+def handle_chat(payload: ChatRequest, db: Session = Depends(get_db)):
     client = openai.OpenAI(api_key=settings.openai_api_key)
     
-    messages = [
+    messages: List[ChatCompletionMessageParam] = [
         {"role": "system", "content": (
             "You are a local Seoul guide assistant. Use database tools to fetch official spots and community posts before answering.\n\n"
             "CRITICAL RULES:\n"
@@ -75,38 +87,54 @@ async def handle_chat(payload: ChatRequest, db: Session = Depends(get_db)):
     )
     
     response_msg = response.choices[0].message
+    tool_calls = [tool_call for tool_call in (response_msg.tool_calls or []) if tool_call.type == "function"]
+    if not tool_calls:
+        return ChatBotResponse(response=response_msg.content)
+
+    assistant_message: ChatCompletionAssistantMessageParam = {
+        "role": "assistant",
+        "content": response_msg.content,
+        "tool_calls": [
+            {
+                "id": tool_call.id,
+                "type": "function",
+                "function": {
+                    "name": tool_call.function.name,
+                    "arguments": tool_call.function.arguments,
+                },
+            }
+            for tool_call in tool_calls
+        ],
+    }
     
-    # If OpenAI determines it needs database data
-    if response_msg.tool_calls:
-        messages.append(response_msg)
-        
-        for tool_call in response_msg.tool_calls:
-            func_name = tool_call.function.name
-            args = json.loads(tool_call.function.arguments)
+    messages.append(assistant_message)
+
+    # 1. Process and append ALL tool responses first
+    for tool_call in tool_calls:
+        func_name = tool_call.function.name
+        args = json.loads(tool_call.function.arguments)
+
+        db_data = []
+        if func_name == "search_local_pois":
+            db_data = search_local_pois(
+                db,
+                category_name=args.get("category_name"),
+                query_location=args.get("query_location")
+            )
+        elif func_name == "get_community_reviews":
+            db_data = get_community_reviews(db, category_name=args.get("category_name"))
+
+        tool_message: ChatCompletionToolMessageParam = {
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": json.dumps(db_data, ensure_ascii=False),
+        }
+        messages.append(tool_message)
             
-            db_data = []
-            if func_name == "search_local_pois":
-                db_data = search_local_pois(
-                    db, 
-                    category_name=args.get("category_name"), 
-                    query_location=args.get("query_location")
-                )
-            elif func_name == "get_community_reviews":
-                db_data = get_community_reviews(db, category_name=args.get("category_name"))
-            
-            # Send the database query results back as a tool message
-            messages.append({
-                "tool_call_id": tool_call.id,
-                "role": "tool",
-                "name": func_name,
-                "content": json.dumps(db_data, ensure_ascii=False)
-            })
-            
-        # Call OpenAI again with the newly retrieved DB context
-        final_response = client.chat.completions.create(
-            model="gpt-5-mini",
-            messages=messages
-        )
-        return {"response": final_response.choices[0].message.content}
-        
-    return {"response": response_msg.content}
+    # 2. Call OpenAI ONLY AFTER all tool responses have been appended (OUTSIDE the loop)
+    final_response = client.chat.completions.create(
+        model="gpt-5-mini",
+        messages=messages
+    )
+    
+    return ChatBotResponse(response=final_response.choices[0].message.content)

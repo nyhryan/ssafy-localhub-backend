@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.scripts.import_data import import_json_data, import_posts, seed_content_types
 from .database import Base, engine
-from .api.v1 import category, posts
+from .api.v1 import category, posts, chatbot
 
 Base.metadata.create_all(bind=engine)
 
@@ -52,3 +52,4 @@ app.add_middleware(
 
 app.include_router(posts.router, prefix="/api/v1")
 app.include_router(category.router, prefix="/api/v1")
+app.include_router(chatbot.router, prefix="/api/v1")

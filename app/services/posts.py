@@ -5,7 +5,7 @@ from sqlalchemy import asc, desc, or_, update
 from sqlalchemy.orm import Session
 
 from app.models import ContentType, Post
-from app.schemas.posts import PostCreate, PostUpdate, PostLikeCountRequest
+from app.schemas.posts import PostCreate, PostUpdate, PostLikeToggle
 
 
 ALLOWED_SORT_FIELDS = {
@@ -140,7 +140,7 @@ def delete_post(db: Session, post_id: int):
     db.delete(post)
     db.commit()
 
-def update_post_like_count(db: Session, post_id: int, payload: PostLikeCountRequest) -> int:
+def update_post_like_count(db: Session, post_id: int, payload: PostLikeToggle) -> int:
     delta = -1 if payload.has_liked else 1
 
     stmt = (
