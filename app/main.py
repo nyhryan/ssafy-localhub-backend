@@ -39,6 +39,7 @@ app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
+    "https://frolicking-valkyrie-bfd943.netlify.app"
 ]
 
 app.add_middleware(
